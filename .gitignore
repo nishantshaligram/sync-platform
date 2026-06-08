@@ -1,0 +1,73 @@
+# ─── Maven ───────────────────────────────────────────────────────────────────
+target/
+*.jar
+*.war
+*.ear
+*.class
+.mvn/wrapper/maven-wrapper.jar
+
+# ─── Spring Boot ─────────────────────────────────────────────────────────────
+*.log
+logs/
+spring-shell.log
+
+# ─── IDE — IntelliJ ──────────────────────────────────────────────────────────
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+
+# ─── IDE — VS Code ───────────────────────────────────────────────────────────
+.vscode/
+*.code-workspace
+
+# ─── IDE — Eclipse ───────────────────────────────────────────────────────────
+.classpath
+.project
+.settings/
+.factorypath
+
+# ─── Docker ──────────────────────────────────────────────────────────────────
+# Keep docker-compose.yml but ignore override files
+docker-compose.override.yml
+
+# ─── Environment & Secrets ───────────────────────────────────────────────────
+.env
+.env.local
+.env.*.local
+*.env
+
+# ─── OS ──────────────────────────────────────────────────────────────────────
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Mac
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Linux
+*~
+
+# ─── Docker volumes (if accidentally created locally) ────────────────────────
+postgres_data/
+mongodb_data/
+redis_data/
+kafka_data/
+zookeeper_data/
+elasticsearch_data/
+
+# ─── Config repo secrets ─────────────────────────────────────────────────────
+# Keep config-repo YAMLs but ignore any secrets files
+config-repo/*-secrets.yml
+config-repo/*-prod.yml
+
+# ─── Test reports ────────────────────────────────────────────────────────────
+**/surefire-reports/
+**/failsafe-reports/
+**/test-results/
