@@ -1,4 +1,4 @@
-package com.syncplatform.auth_service;
+package com.syncplatform.auth_service.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
