@@ -8,7 +8,11 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "plans")
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Plan {
 
     @Id
@@ -27,6 +31,7 @@ public class Plan {
     @Column(name = "price_amount")
     private BigDecimal priceAmount;
 
+    @Column(name = "currency", length = 3)
     private String currency;
 
     @Column(name = "billing_interval")
