@@ -5,7 +5,7 @@ spring:
   application:
     name: subscription-service
   config:
-    import: "configserver:http://config-server:8888"
+    import: "optional:configserver:http://config-server:8888"
   datasource:
     url: jdbc:postgresql://postgres:5432/syncdb
     username: appuser
@@ -34,5 +34,11 @@ eureka:
     prefer-ip-address: true
 
 stripe:
-  api-key: ${STRIPE_SECRET_KEY}
-  webhook-secret: ${STRIPE_WEBHOOK_SECRET}
+  api-key: ${STRIPE_SECRET_KEY:sk_test_placeholder}
+  webhook-secret: ${STRIPE_WEBHOOK_SECRET:whsec_placeholder}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
