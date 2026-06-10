@@ -108,7 +108,6 @@ public class ShopifyOAuthService {
         return shopDomain;
     }
 
-    @Bean
     public RestTemplate restTemplate() {
         return new RestTemplate();
     }
