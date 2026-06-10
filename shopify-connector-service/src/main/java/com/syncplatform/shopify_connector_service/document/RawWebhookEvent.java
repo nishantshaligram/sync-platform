@@ -22,12 +22,12 @@ public class RawWebhookEvent {
 
     @Id
     private String id;
-    private String syncConnectedId;
+    private String syncConnectionId;
     private String platform;
     private String eventType;
     private String externalEventId;
     private Instant receivedAt;
-    private boolean signatureVerifeid;
+    private boolean signatureVerified;
     private Map<String, Object> rawPayload;
     private ProcessingInfo processing;
 
