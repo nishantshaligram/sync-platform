@@ -1,9 +1,8 @@
 package com.syncplatform.shopify_connector_service.entity;
 
-import java.time.OffsetDateTime;
-
 import jakarta.persistence.*;
 import lombok.*;
+import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Entity
@@ -20,13 +19,13 @@ public class PlatformAccount {
     private UUID id;
 
     @Column(name = "user_id", nullable = false)
-    private UUID userID;
+    private UUID userId;
 
-    @Column(name = "platform", nullable = false)
+    @Column(nullable = false)
     private String platform;
 
-    @Column(name = "platform_type", nullable = false)
-    private String platformType;
+    @Column(name = "platform_kind", nullable = false)
+    private String platformKind;
 
     @Column(name = "external_account_id", nullable = false)
     private String externalAccountId;
@@ -43,16 +42,16 @@ public class PlatformAccount {
     @Column(name = "token_expires_at")
     private OffsetDateTime tokenExpiresAt;
 
-    @Column(name = "scopes", columnDefinition = "TEXT[]")
+    @Column(columnDefinition = "TEXT[]")
     private String[] scopes;
 
-    @Column(name = "status", nullable = false)
+    @Column(nullable = false)
     private String status;
 
     @Column(name = "last_health_check_at")
     private OffsetDateTime lastHealthCheckAt;
 
-    @Column(name = "metadata", columnDefinition = "JSONB")
+    @Column(columnDefinition = "JSONB")
     private String metadata;
 
     @Column(name = "created_at")
@@ -63,4 +62,15 @@ public class PlatformAccount {
 
     @Column(name = "deleted_at")
     private OffsetDateTime deletedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = OffsetDateTime.now();
+        updatedAt = OffsetDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = OffsetDateTime.now();
+    }
 }
