@@ -16,3 +16,7 @@ spring:
           uri: lb://subscription-service
           predicates:
             - Path=/subscriptions/**
+        - id: shopify-connector-service
+          uri: lb://shopify-connector-service
+          predicates:
+            - Path=/shopify/**
