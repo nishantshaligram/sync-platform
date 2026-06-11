@@ -24,6 +24,7 @@
         <module>subscription-service</module>
         <module>shopify-connector-service</module>
         <module>qbo-connector-service</module>
+        <module>sync-core-service</module>
     </modules>
 
     <properties>
