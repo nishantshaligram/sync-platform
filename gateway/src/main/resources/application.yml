@@ -20,3 +20,7 @@ spring:
           uri: lb://shopify-connector-service
           predicates:
             - Path=/shopify/**
+        - id: qbo-connector-service
+          uri: lb://qbo-connector-service
+          predicates:
+            - Path=/qbo/**
