@@ -23,6 +23,7 @@
         <module>auth-service</module>
         <module>subscription-service</module>
         <module>shopify-connector-service</module>
+        <module>qbo-connector-service</module>
     </modules>
 
     <properties>
