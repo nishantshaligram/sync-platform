@@ -222,6 +222,30 @@ services:
       SHOPIFY_CLIENT_SECRET: ${SHOPIFY_CLIENT_SECRET:-test_client_secret}
       SHOPIFY_REDIRECT_URI: ${SHOPIFY_REDIRECT_URI:-http://localhost:8080/shopify/oauth/callback}
 
+  qbo-connector-service:
+    build: ./qbo-connector-service
+    container_name: qbo-connector-service
+    depends_on:
+      - postgres
+      - mongodb
+      - kafka
+      - redis
+      - eureka-server
+    ports:
+      - "8084:8084"
+    environment:
+      SPRING_PROFILES_ACTIVE: local
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/syncdb
+      SPRING_DATASOURCE_USERNAME: appuser
+      SPRING_DATASOURCE_PASSWORD: apppassword
+      SPRING_DATA_MONGODB_URI: mongodb://appuser:apppassword@mongodb:27017/syncdb?authSource=admin
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      SPRING_DATA_REDIS_HOST: redis
+      QBO_CLIENT_ID: ${QBO_CLIENT_ID:-test_client_id}
+      QBO_CLIENT_SECRET: ${QBO_CLIENT_SECRET:-test_client_secret}
+      QBO_REDIRECT_URI: ${QBO_REDIRECT_URI:-http://localhost:8080/qbo/oauth/callback}
+
 volumes:
   postgres_data:
   mongodb_data:
