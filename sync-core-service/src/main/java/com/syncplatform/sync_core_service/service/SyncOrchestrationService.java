@@ -39,6 +39,7 @@ public class SyncOrchestrationService {
     private final StringRedisTemplate redisTemplate;
     private final KafkaTemplate<String, Object> kafkaTemplate;
     private final ObjectMapper objectMapper;
+    private final ManualSyncQuotaService manualSyncQuotaService;
 
     private static final int BATCH_SIZE = 5000;
     private static final Duration LOCK_TTL = Duration.ofHours(1);
@@ -368,6 +369,10 @@ public class SyncOrchestrationService {
         }
 
         syncRunRepository.save(run);
+
+        if ("manual".equals(run.getTriggerType()) && "failed".equals(run.getStatus())) {
+            manualSyncQuotaService.refund(run.getSyncConnectionId());
+        }
 
         SyncConnection conn = syncConnectionRepository.findById(run.getSyncConnectionId()).orElse(null);
         if (conn != null) {
