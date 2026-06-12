@@ -269,6 +269,21 @@ services:
       SPRING_DATA_REDIS_HOST: redis
       SPRING_ELASTICSEARCH_URIS: http://elasticsearch:9200
 
+  scheduler-service:
+    build: ./scheduler-service
+    container_name: scheduler-service
+    depends_on:
+      - postgres
+      - kafka
+      - eureka-server
+    environment:
+      SPRING_PROFILES_ACTIVE: local
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/syncdb
+      SPRING_DATASOURCE_USERNAME: appuser
+      SPRING_DATASOURCE_PASSWORD: apppassword
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+
 volumes:
   postgres_data:
   mongodb_data:
