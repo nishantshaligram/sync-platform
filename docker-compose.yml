@@ -245,6 +245,29 @@ services:
       QBO_CLIENT_ID: ${QBO_CLIENT_ID:-test_client_id}
       QBO_CLIENT_SECRET: ${QBO_CLIENT_SECRET:-test_client_secret}
       QBO_REDIRECT_URI: ${QBO_REDIRECT_URI:-http://localhost:8080/qbo/oauth/callback}
+  
+  sync-core-service:
+    build: ./sync-core-service
+    container_name: sync-core-service
+    depends_on:
+      - postgres
+      - mongodb
+      - kafka
+      - redis
+      - elasticsearch
+      - eureka-server
+    ports:
+      - "8085:8085"
+    environment:
+      SPRING_PROFILES_ACTIVE: local
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/syncdb
+      SPRING_DATASOURCE_USERNAME: appuser
+      SPRING_DATASOURCE_PASSWORD: apppassword
+      SPRING_DATA_MONGODB_URI: mongodb://appuser:apppassword@mongodb:27017/syncdb?authSource=admin
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_ELASTICSEARCH_URIS: http://elasticsearch:9200
 
 volumes:
   postgres_data:
