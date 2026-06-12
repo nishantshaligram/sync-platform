@@ -25,6 +25,7 @@
         <module>shopify-connector-service</module>
         <module>qbo-connector-service</module>
         <module>sync-core-service</module>
+        <module>scheduler-service</module>
     </modules>
 
     <properties>
