@@ -24,3 +24,7 @@ spring:
           uri: lb://qbo-connector-service
           predicates:
             - Path=/qbo/**
+        - id: sync-core-service
+          uri: lb://sync-core-service
+          predicates:
+            - Path=/connections/**
