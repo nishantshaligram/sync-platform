@@ -40,6 +40,19 @@ function App() {
       <main className="app-main">
         {page === 'login' && <LoginPage onLogin={() => navigate('dashboard')} onGoSignup={() => navigate('signup')} />}
         {page === 'signup' && <SignupPage onGoLogin={() => navigate('login')} />}
+        {page === 'dashboard' && (
+          <Dashboard
+            onNewConnection={() => navigate('wizard')}
+            onViewConnection={(id) => navigate('detail', id)}
+          />
+        )}
+        {page === 'wizard' && <ConnectionWizard onDone={() => navigate('dashboard')} />}
+        {page === 'detail' && (
+          <ConnectionDetail
+            connectionId={selectedConnectionId}
+            onBack={() => navigate('dashboard')}
+          />
+        )}
       </main>
     </div>
   );
