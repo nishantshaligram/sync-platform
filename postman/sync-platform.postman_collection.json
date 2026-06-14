@@ -1,0 +1,371 @@
+{
+  "info": {
+    "_postman_id": "b6f1b2b0-2f3e-4f8a-9b6d-7a2e1c4d5e6f",
+    "name": "Sync Platform API",
+    "description": "End-to-end API walkthrough for the Sync Platform microservices (via the gateway on http://localhost:8080).\n\nSuggested order for a report / screenshots:\n1. Auth: Signup -> Verify Email -> Login (saves JWT automatically)\n2. Subscriptions: Limits (before) -> Activate Demo -> Limits (after)\n3. Connector OAuth: Shopify / QBO authorize URLs\n4. Sync Connections: Create -> List -> Get -> Manual Sync -> Sync History -> Search History\n\nBefore running:\n- Start the stack with `.\\start.ps1` (or `docker compose up -d`).\n- Run requests top-to-bottom within each folder; several requests use values captured from previous responses via collection variables (access_token, user_id, connection_id, test_email).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      { "key": "token", "value": "{{access_token}}", "type": "string" }
+    ]
+  },
+  "event": [],
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:8080", "type": "string" },
+    { "key": "test_email", "value": "demo.user@example.com", "type": "string" },
+    { "key": "test_password", "value": "Passw0rd!2024", "type": "string" },
+    { "key": "test_full_name", "value": "Demo User", "type": "string" },
+    { "key": "verification_token", "value": "", "type": "string" },
+    { "key": "access_token", "value": "", "type": "string" },
+    { "key": "user_id", "value": "", "type": "string" },
+    { "key": "connection_id", "value": "", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "01 - Auth",
+      "auth": { "type": "noauth" },
+      "item": [
+        {
+          "name": "1. Signup",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{test_email}}\",\n  \"password\": \"{{test_password}}\",\n  \"fullName\": \"{{test_full_name}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/signup",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "signup"]
+            },
+            "description": "Creates a new pending user. Generates a fresh email each run (via pre-request script) so it can be re-run without an 'Email already in use' error.\n\nExpected: 200 OK, message 'Signup successful. Check logs for verification link.'\n\nAfter running this, check the auth-service logs (`docker logs auth-service`) for a line like:\n`Verification link: http://localhost:8080/auth/verify?token=<TOKEN>`\nCopy that token into the `verification_token` collection variable before running the next request."
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const uniqueEmail = `demo.user.${Date.now()}@example.com`;",
+                  "pm.collectionVariables.set('test_email', uniqueEmail);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "2. Verify Email",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/auth/verify?token={{verification_token}}",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "verify"],
+              "query": [
+                { "key": "token", "value": "{{verification_token}}" }
+              ]
+            },
+            "description": "Activates the account using the token logged by auth-service during signup.\n\nSet the `verification_token` collection variable to the value printed in the auth-service logs, then send this request.\n\nExpected: 200 OK, message 'Email verified. You can now log in.'"
+          },
+          "response": []
+        },
+        {
+          "name": "3. Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{test_email}}\",\n  \"password\": \"{{test_password}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Logs in the verified user and returns a JWT.\n\nExpected: 200 OK with { token, email, userId }.\n\nThe JWT and userId are automatically saved to the `access_token` and `user_id` collection variables and reused as a Bearer token for every other request in this collection."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set('access_token', json.token);",
+                  "pm.collectionVariables.set('user_id', json.userId);"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "4. Get JWKS (Public Keys)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/auth/.well-known/jwks.json",
+              "host": ["{{base_url}}"],
+              "path": [".well-known", "jwks.json"]
+            },
+            "description": "Public JSON Web Key Set used by downstream services to validate JWTs issued by auth-service.\n\nExpected: 200 OK with a `keys` array."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "02 - Subscriptions",
+      "item": [
+        {
+          "name": "1. Get Plan Limits (Before Activation)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/subscriptions/limits",
+              "host": ["{{base_url}}"],
+              "path": ["subscriptions", "limits"]
+            },
+            "description": "A brand new user has no subscription row yet.\n\nExpected: 400 Bad Request, message 'No subscription for user'. Useful screenshot showing the API's validation/error response shape."
+          },
+          "response": []
+        },
+        {
+          "name": "2. Activate Demo Subscription",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/subscriptions/demo",
+              "host": ["{{base_url}}"],
+              "path": ["subscriptions", "demo"]
+            },
+            "description": "Assigns the free 'demo' plan to the current user.\n\nExpected: 200 OK, message 'Demo subscription activated'."
+          },
+          "response": []
+        },
+        {
+          "name": "3. Get Plan Limits (After Demo Activation)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/subscriptions/limits",
+              "host": ["{{base_url}}"],
+              "path": ["subscriptions", "limits"]
+            },
+            "description": "Same endpoint as before, now that the user has an active 'demo' plan.\n\nExpected: 200 OK with planCode 'demo' and the demo plan's limits (1 connection, 24h interval, 1 manual sync/day, 30 day backfill, 90 day retention)."
+          },
+          "response": []
+        },
+        {
+          "name": "4. Create Checkout Session (Upgrade to Pro)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"planCode\": \"pro\",\n  \"successUrl\": \"http://localhost:5173/billing/success\",\n  \"cancelUrl\": \"http://localhost:5173/billing/cancel\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/subscriptions/checkout",
+              "host": ["{{base_url}}"],
+              "path": ["subscriptions", "checkout"]
+            },
+            "description": "Creates a Stripe Checkout session for the 'pro' plan.\n\nExpected: 200 OK with { checkoutUrl } if STRIPE_SECRET_KEY in .env is a valid Stripe test key with a matching Price configured for the 'pro' plan. With the placeholder key from .env.example this will return a Stripe authentication error (500) — still useful to show the endpoint is wired up and calling Stripe."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "03 - Connector OAuth",
+      "item": [
+        {
+          "name": "1. Shopify - Get Authorization URL",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/shopify/oauth/authorize?shop=test-store.myshopify.com",
+              "host": ["{{base_url}}"],
+              "path": ["shopify", "oauth", "authorize"],
+              "query": [
+                { "key": "shop", "value": "test-store.myshopify.com" }
+              ]
+            },
+            "description": "Builds the Shopify OAuth consent URL for the given shop domain. Requires a valid JWT (Bearer token from Login).\n\nExpected: 200 OK with { authorizationUrl, state }."
+          },
+          "response": []
+        },
+        {
+          "name": "2. QuickBooks Online - Get Authorization URL",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/qbo/oauth/authorize",
+              "host": ["{{base_url}}"],
+              "path": ["qbo", "oauth", "authorize"]
+            },
+            "description": "Builds the QuickBooks Online OAuth consent URL for the logged-in user. Requires a valid JWT (Bearer token from Login).\n\nExpected: 200 OK with { authorizationUrl }."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "04 - Sync Connections",
+      "item": [
+        {
+          "name": "1. Create Connection",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Shopify to QuickBooks Sync\",\n  \"sourceAccountId\": \"{{$guid}}\",\n  \"destinationAccountId\": \"{{$guid}}\",\n  \"timezone\": \"America/New_York\",\n  \"intervalHours\": 6,\n  \"backfillDays\": 30\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/connections",
+              "host": ["{{base_url}}"],
+              "path": ["connections"]
+            },
+            "description": "Creates a new sync connection/schedule for the logged-in user and triggers an initial sync run.\n\nNote: sourceAccountId/destinationAccountId are randomly generated GUIDs here for demo purposes (they are not validated against real connected accounts at creation time).\n\nExpected: 200 OK with the new connection's id, status 'active', computed nextRunAtUtc, etc. The `id` is saved to the `connection_id` collection variable for the requests below."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set('connection_id', json.id);"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "2. List Connections",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/connections",
+              "host": ["{{base_url}}"],
+              "path": ["connections"]
+            },
+            "description": "Lists all active sync connections for the logged-in user.\n\nExpected: 200 OK with an array containing the connection created above."
+          },
+          "response": []
+        },
+        {
+          "name": "3. Get Connection By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/connections/{{connection_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["connections", "{{connection_id}}"]
+            },
+            "description": "Fetches a single connection by id (uses the `connection_id` saved from 'Create Connection').\n\nExpected: 200 OK with connection details."
+          },
+          "response": []
+        },
+        {
+          "name": "4. Trigger Manual Sync",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/connections/{{connection_id}}/sync",
+              "host": ["{{base_url}}"],
+              "path": ["connections", "{{connection_id}}", "sync"]
+            },
+            "description": "Manually triggers a sync run for the connection.\n\nExpected: 202 Accepted with a queued sync run. May return 409 if a sync is already in progress (sync lock), or 429 if the plan's daily manual-sync quota is exceeded."
+          },
+          "response": []
+        },
+        {
+          "name": "5. Get Sync History",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/connections/{{connection_id}}/sync-history?page=0&size=20",
+              "host": ["{{base_url}}"],
+              "path": ["connections", "{{connection_id}}", "sync-history"],
+              "query": [
+                { "key": "page", "value": "0" },
+                { "key": "size", "value": "20" }
+              ]
+            },
+            "description": "Returns a paginated list of sync runs for the connection (from PostgreSQL).\n\nExpected: 200 OK with a Page object containing at least the 'initial' sync run created when the connection was set up."
+          },
+          "response": []
+        },
+        {
+          "name": "6. Search Sync History",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/connections/{{connection_id}}/sync-history/search?status=queued&page=0&size=20",
+              "host": ["{{base_url}}"],
+              "path": ["connections", "{{connection_id}}", "sync-history", "search"],
+              "query": [
+                { "key": "status", "value": "queued" },
+                { "key": "page", "value": "0" },
+                { "key": "size", "value": "20" }
+              ]
+            },
+            "description": "Searches indexed sync run history (from MongoDB/Elasticsearch-backed search) filtered by status.\n\nExpected: 200 OK with an array of matching sync run summaries. Remove the `status` query param to see all runs."
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
