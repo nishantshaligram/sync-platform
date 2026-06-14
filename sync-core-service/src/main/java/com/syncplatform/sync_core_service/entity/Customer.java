@@ -7,7 +7,11 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "customers")
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Customer {
 
     @Id
@@ -20,6 +24,7 @@ public class Customer {
     @Column(name = "external_customer_id")
     private String externalCustomerId;
 
+    @Column(columnDefinition = "citext")
     private String email;
 
     @Column(name = "first_name")
