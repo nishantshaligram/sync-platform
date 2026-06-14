@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
-// import Dashboard from './pages/Dashboard';
-// import ConnectionWizard from './pages/ConnectionWizard';
-// import ConnectionDetail from './pages/ConnectionDetail';
+import Dashboard from './pages/Dashboard';
+import ConnectionWizard from './pages/ConnectionWizard';
+import ConnectionDetail from './pages/ConnectionDetail';
 import './App.css';
 
 function App() {
