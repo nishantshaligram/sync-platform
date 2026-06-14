@@ -41,3 +41,9 @@ spring:
           uri: lb://sync-core-service
           predicates:
             - Path=/connections/**
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,gateway
